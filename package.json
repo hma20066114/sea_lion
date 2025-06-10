@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/hma20066114/sea_lion/issues"
   },
-  "homepage": "https://github.com/hma20066114/sea_lion#readme"
+  "homepage": "https://github.com/hma20066114/sea_lion#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
 }
