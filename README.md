@@ -1,4 +1,4 @@
-<h1>SeaLion Project</h1>
+<h1>SeaLion Project (B9IS123 PROGRAMMING FOR INFORMATION SYSTEMS)</h1>
 
 
 
