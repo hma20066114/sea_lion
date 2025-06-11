@@ -24,6 +24,36 @@ Google Map
 Sea Lion Co Ltd., 181, Street Bo Myat Htun St, Yangon 11161, Myanmar (Burma)
 
 
+Features
+--------------
+Admin Pages
+
+
+Warehouse Management
+
+
+Purchase Oder
+
+
+Sale Order
+
+
+
+
+Technologies
+--------------
+
+Front-End = React Js (v18)
+
+
+Back-End = django rest framework
+
+
+Database = MySQL
+
+
+
+
 
 
 
