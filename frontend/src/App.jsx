@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
-// ICONS (using inline SVGs for simplicity and performance)
 const EditIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 hover:text-blue-700">
         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -18,7 +17,7 @@ const DeleteIcon = () => (
 );
 
 // Constants
-const API_URL = 'http://127.0.0.1:8000/api/products/'; // IMPORTANT: Replace with your actual Django API URL
+const API_URL = 'http://127.0.0.1:8000/api/products/';
 
 // Main Application Component
 export default function App() {
