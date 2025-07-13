@@ -1,13 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProductViewSet, PurchaseOrderViewSet, PurchaseOrderItemViewSet
+from .views import ProductViewSet, PurchaseOrderViewSet, PurchaseOrderItemViewSet, SalesOrderViewSet, SalesOrderItemViewSet
 
 router = DefaultRouter()
 router.register(r'products', ProductViewSet)
 router.register(r'purchase-orders', PurchaseOrderViewSet)
 router.register(r'purchase-order-items', PurchaseOrderItemViewSet)
+router.register(r'sales-orders', SalesOrderViewSet)
+router.register(r'sales-order-items', SalesOrderItemViewSet)
 
-# The API URLs are now determined automatically by the router.
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/', include(router.urls)),
 ]
