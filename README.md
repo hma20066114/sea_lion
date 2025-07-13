@@ -26,16 +26,16 @@ Sea Lion Co Ltd., 181, Street Bo Myat Htun St, Yangon 11161, Myanmar (Burma)
 
 Features
 --------------
-Admin Pages
+Product - User need to create firstly products. 
 
 
-Warehouse Management
+Warehouse Management - User can see available and unavailable product. After user purchasing products, that product will be stored in warehouse.
 
 
-Purchase Oder
+Purchase Oder- User can purchase the products by vendors or oversea.
 
 
-Sale Order
+Sale Order - User can only sell the available products and quantity in warehouse. If products quantity is not available , user can not sell at all.
 
 
 
