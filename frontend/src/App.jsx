@@ -223,7 +223,7 @@ function RegisterPage({ onSwitchToLogin }) {
 function DashboardPage({ setCurrentPage }) {
     return (
          <div className="container">
-            <PageHeader title="Dashboard" subtitle="Welcome to your Warehouse Management System." />
+            <PageHeader title="Dashboard" subtitle="Welcome to Sea Lion Distribution System." />
             <div className="dashboard-grid">
                 <div onClick={() => setCurrentPage('products')} className="dashboard-card">
                     <h3>Products</h3>
@@ -906,7 +906,7 @@ export default function App() {
         <div>
             <nav className="nav-bar">
                 <div className="nav-container">
-                    <h1 className="nav-title" onClick={() => setCurrentPage('dashboard')}>Warehouse Mgmt</h1>
+                    <h1 className="nav-title" onClick={() => setCurrentPage('dashboard')}>Sea Lion</h1>
                     <div className="nav-links">
                         <button onClick={() => setCurrentPage('dashboard')} className={currentPage === 'dashboard' ? 'active' : ''}>Dashboard</button>
                         <button onClick={() => setCurrentPage('products')} className={currentPage === 'products' ? 'active' : ''}>Products</button>
