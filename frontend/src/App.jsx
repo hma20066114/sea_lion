@@ -423,6 +423,74 @@ const ProductFormModal = ({ product, onClose, onSubmit }) => {
 };
 
 
+function WarehousePage() {
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchItems = useCallback(async (searchTerm = '') => {
+        setLoading(true);
+        setError(null);
+        try {
+            const params = searchTerm ? { search: searchTerm } : {};
+            const data = await apiService.get('/warehouse/', params);
+            setItems(data);
+        } catch (err) {
+                 const detailedError = `Could not connect to the API. Error: ${err.message}`;
+                setError(detailedError);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchItems();
+    }, [fetchItems]);
+
+    return (
+        <div className="container">
+            <PageHeader title="Warehouse Inventory" subtitle="All items currently in stock.">
+                <SearchBar onSearch={fetchItems} />
+            </PageHeader>
+            {error && <ErrorMessage message={error} />}
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Date Added</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loading && !error ? (
+                            <tr><td colSpan="4"><LoadingSpinner text="Loading inventory..." /></td></tr>
+                        ) : items.length === 0 && !error ? (
+                            <tr><td colSpan="4" style={{textAlign: 'center', padding: '2.5rem'}}>Warehouse is empty.</td></tr>
+                        ) : (
+                            items.map(item => (
+                                <tr key={item.id}>
+                                    <td>
+                                        {item.product.image ?
+                                            <img src={item.product.image} alt={item.product.name} className="product-image" /> :
+                                            <div className="product-image-placeholder">No Image</div>
+                                        }
+                                    </td>
+                                    <td>{item.product.name}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>{new Date(item.added_at).toLocaleDateString()}</td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+
 
 // --- Main App Component ---
 export default function App() {
@@ -462,6 +530,8 @@ export default function App() {
         switch (currentPage) {
             case 'dashboard': return <DashboardPage setCurrentPage={setCurrentPage} />;
             case 'products': return <ProductPage />;
+            case 'warehouse': return <WarehousePage />;
+
             default: return <DashboardPage setCurrentPage={setCurrentPage} />;
         }
     };
@@ -474,6 +544,8 @@ export default function App() {
                     <div className="nav-links">
                         <button onClick={() => setCurrentPage('dashboard')} className={currentPage === 'dashboard' ? 'active' : ''}>Dashboard</button>
                         <button onClick={() => setCurrentPage('products')} className={currentPage === 'products' ? 'active' : ''}>Products</button>
+                        <button onClick={() => setCurrentPage('warehouse')} className={currentPage === 'warehouse' ? 'active' : ''}>Warehouse</button>
+
                         <button onClick={handleLogout}>Logout</button>
                     </div>
                 </div>
