@@ -1,106 +1,94 @@
 from rest_framework import serializers
-from .models import Product, PurchaseOrder, PurchaseOrderItem, SalesOrder, SalesOrderItem
+from .models import Product, PurchaseOrder, WarehouseItem, SalesOrder, SalesOrderItem
+from django.db import transaction
+from django.contrib.auth.models import User
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
 
 class ProductSerializer(serializers.ModelSerializer):
+    stock = serializers.IntegerField(read_only=True)
+    image = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
+
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ['id', 'product_code', 'name', 'description', 'price', 'stock', 'image']
+        read_only_fields = ['product_code']
 
-class PurchaseOrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.ReadOnlyField(source='product.name')
 
+class PurchaseOrderProductSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PurchaseOrderItem
-        fields = ['id', 'product', 'product_name', 'quantity', 'price']
-        read_only_fields = ['price']
+        model = Product
+        fields = ['id', 'name', 'image', 'product_code']
+
 
 class PurchaseOrderSerializer(serializers.ModelSerializer):
-    items = PurchaseOrderItemSerializer(many=True, read_only=False)
-    total_amount = serializers.ReadOnlyField()
+    product = PurchaseOrderProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product', write_only=True)
 
     class Meta:
         model = PurchaseOrder
-        fields = ['id', 'supplier_name', 'supplier_email', 'order_date', 'status', 'total_amount', 'items', 'created_at', 'updated_at']
-        read_only_fields = ['order_date', 'created_at', 'updated_at']
+        fields = ['id', 'po_number', 'product', 'product_id', 'supplier', 'quantity', 'unit_price', 'order_date',
+                  'status']
+        read_only_fields = ['status', 'order_date', 'po_number']
 
-    def create(self, validated_data):
-        items_data = validated_data.pop('items')
-        purchase_order = PurchaseOrder.objects.create(**validated_data)
-        for item_data in items_data:
-            PurchaseOrderItem.objects.create(purchase_order=purchase_order, **item_data)
-        purchase_order.calculate_total_amount()
-        return purchase_order
 
-    def update(self, instance, validated_data):
-        items_data = validated_data.pop('items', [])
-        instance.supplier_name = validated_data.get('supplier_name', instance.supplier_name)
-        instance.supplier_email = validated_data.get('supplier_email', instance.supplier_email)
-        instance.status = validated_data.get('status', instance.status)
-        instance.save()
+class WarehouseItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
 
-        current_item_ids = [item.id for item in instance.items.all()]
-        for item_data in items_data:
-            item_id = item_data.get('id', None)
-            if item_id in current_item_ids:
-                item_instance = PurchaseOrderItem.objects.get(id=item_id, purchase_order=instance)
-                item_instance.product = item_data.get('product', item_instance.product)
-                item_instance.quantity = item_data.get('quantity', item_instance.quantity)
-                item_instance.save()
-            else:
-                PurchaseOrderItem.objects.create(purchase_order=instance, **item_data)
+    class Meta:
+        model = WarehouseItem
+        fields = ['id', 'product', 'quantity', 'added_at']
 
-        instance.calculate_total_amount()
-        return instance
 
 class SalesOrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.ReadOnlyField(source='product.name')
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_image = serializers.ImageField(source='product.image', read_only=True)
 
     class Meta:
         model = SalesOrderItem
-        fields = ['id', 'product', 'product_name', 'quantity', 'price']
-        read_only_fields = ['price']
+        fields = ['id', 'product', 'product_name', 'product_image', 'quantity', 'price']
+        read_only_fields = ['price', 'product_name', 'product_image']
+
 
 class SalesOrderSerializer(serializers.ModelSerializer):
-    items = SalesOrderItemSerializer(many=True, read_only=False)
-    total_amount = serializers.ReadOnlyField()
+    items = SalesOrderItemSerializer(many=True)
+    total_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
         model = SalesOrder
-        fields = ['id', 'customer_name', 'customer_email', 'order_date', 'status', 'total_amount', 'items', 'created_at', 'updated_at']
-        read_only_fields = ['order_date', 'created_at', 'updated_at']
+        fields = ['id', 'so_number', 'customer_name', 'order_date', 'total_amount', 'items']
+        read_only_fields = ['so_number']
 
+    @transaction.atomic
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        for item_data in items_data:
-            product = Product.objects.get(id=item_data['product'].id)
-            if product.stock < item_data['quantity']:
-                raise serializers.ValidationError(f"Not enough stock for {product.name}. Available: {product.stock}")
         sales_order = SalesOrder.objects.create(**validated_data)
+
         for item_data in items_data:
+            product = item_data['product']
+            quantity_to_sell = item_data['quantity']
+
+            if product.stock < quantity_to_sell:
+                raise serializers.ValidationError(
+                    f"Not enough stock for {product.name}. Available: {product.stock}, Requested: {quantity_to_sell}"
+                )
+
             SalesOrderItem.objects.create(sales_order=sales_order, **item_data)
-        sales_order.calculate_total_amount()
+
+            try:
+                warehouse_item = WarehouseItem.objects.get(product=product)
+                warehouse_item.quantity -= quantity_to_sell
+                warehouse_item.save()
+            except WarehouseItem.DoesNotExist:
+                raise serializers.ValidationError(f"Warehouse inconsistency for product {product.name}.")
+
         return sales_order
 
-    def update(self, instance, validated_data):
-        items_data = validated_data.pop('items', [])
-        instance.customer_name = validated_data.get('customer_name', instance.customer_name)
-        instance.customer_email = validated_data.get('customer_email', instance.customer_email)
-        instance.status = validated_data.get('status', instance.status)
-        instance.save()
 
-        current_item_ids = [item.id for item in instance.items.all()]
-        for item_data in items_data:
-            item_id = item_data.get('id', None)
-            if item_id in current_item_ids:
-                item_instance = SalesOrderItem.objects.get(id=item_id, sales_order=instance)
-                item_instance.product = item_data.get('product', item_instance.product)
-                item_instance.quantity = item_data.get('quantity', item_instance.quantity)
-                item_instance.save()
-            else:
-                product = Product.objects.get(id=item_data['product'].id)
-                if product.stock < item_data['quantity']:
-                    raise serializers.ValidationError(f"Not enough stock for {product.name}. Available: {product.stock}")
-                SalesOrderItem.objects.create(sales_order=instance, **item_data)
 
-        instance.calculate_total_amount()
-        return instance
+
