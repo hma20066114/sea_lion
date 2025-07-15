@@ -144,6 +144,15 @@ The Testing Library Team (2025) @testing-library/jest-dom. Available at: https:/
 jsdom
 The jsdom Team (2025) jsdom. Available at: https://github.com/jsdom/jsdom (Accessed: 14 July 2025).
 
+Gemini (Chat-1)
+React App for Django Products. Available at: https://gemini.google.com/share/b0f96e7769ea (Accessed: 15 July 2025)
+
+Gemini (Chat-2)
+React App Code Explanation Request. Available at: https://g.co/gemini/share/06b3c462f528 (Accessed: 15 July 2025)
+
+Gemini (Chat-3)
+React CRUD for Django API. Available at: https://g.co/gemini/share/a491155ea380 (Accessed: 15 July 2025)
+
 
 
 
