@@ -88,24 +88,4 @@ class SalesOrderViewSet(viewsets.ModelViewSet):
     ordering_fields = ['order_date', 'total_amount']
 
 
-# --- Reporting View ---
-from rest_framework.views import APIView
 
-
-class InventoryReportView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        total_products = Product.objects.count()
-        total_stock_value = WarehouseItem.objects.aggregate(
-            total_value=Sum(models.F('quantity') * models.F('product__price'))
-        )['total_value'] or 0
-
-        most_stocked_items = WarehouseItem.objects.order_by('-quantity')[:5]
-
-        report_data = {
-            'total_products': total_products,
-            'total_stock_value': f"{total_stock_value:.2f}",
-            'most_stocked_items': WarehouseItemSerializer(most_stocked_items, many=True).data,
-        }
-        return Response(report_data)
