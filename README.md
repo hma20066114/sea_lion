@@ -59,6 +59,9 @@ Purchase Oder- User can purchase the products by vendors or oversea.
 Sale Order - User can only sell the available products and quantity in warehouse. If products quantity is not available , user can not sell at all.
 
 
+Searching - User can easily search the product name and unique sequence code. Example-SO-001
+
+
 
 
 Technologies
